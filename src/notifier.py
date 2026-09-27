@@ -6,6 +6,9 @@ def send_discord_alert(data: dict, webhook_url: str):
     status = data.get("status")
     ip_addr = data.get("ip_str") or data.get("ip") or "Unknown IP"
 
+    # Ping @everyone on every scan status
+    content_text = "@everyone"
+
     if status == "CLEAN":
         embed = {
             "title": f"Network Status: CLEAN ({ip_addr})",
@@ -44,7 +47,13 @@ def send_discord_alert(data: dict, webhook_url: str):
             "footer": {"text": "Shodan Sentinel - InternetDB Scan"},
         }
 
-    payload = {"username": "Shodan Sentinel Bot", "embeds": [embed]}
+    # Construct the webhook payload
+    payload = {
+        "username": "Shodan Sentinel Bot",
+        "content": content_text,
+        "embeds": [embed],
+        "allowed_mentions": {"parse": ["everyone"]},
+    }
 
     try:
         response = requests.post(webhook_url, json=payload, timeout=5)
