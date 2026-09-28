@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # CRITICAL STEP: Pulls repo files (main.py, requirements.txt) into the runner workspace
       - name: Checkout repository code
         uses: actions/checkout@v4
 
@@ -20,20 +21,26 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
+      # Safe install step: checks for requirements.txt in root before installing
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            echo "requirements.txt not found in root workspace directory"
+            ls -la
+            exit 1
+          fi
 
       - name: Run Exposure Sentinel Script
         env:
-          # Optional: Pass repository secrets if using external APIs (e.g., Shodan, NVD)
           SHODAN_API_KEY: ${{ secrets.SHODAN_API_KEY }}
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         run: python main.py
 
       - name: Upload Scan Artifacts
-        if: always() # Upload logs even if script detects vulnerabilities
+        if: always() # Uploads logs even if the script detects exposed ports/vulnerabilities
         uses: actions/upload-artifact@v4
         with:
           name: exposure-scan-report
