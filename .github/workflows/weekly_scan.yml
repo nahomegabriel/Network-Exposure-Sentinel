@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository code
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -18,13 +18,17 @@ jobs:
         with:
           python-version: '3.11'
 
+      # Hardcodes package installation directly—no requirements.txt checked or needed!
       - name: Install dependencies
         run: pip install requests urllib3
 
-      - name: Run Exposure Sentinel
+      - name: Run Exposure Sentinel Script
+        env:
+          SHODAN_API_KEY: ${{ secrets.SHODAN_API_KEY }}
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         run: python main.py
 
-      - name: Upload Logs
+      - name: Upload Scan Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
